@@ -8,7 +8,7 @@ type Article = {
   summary: string
 }
 
-const envRapidApiKey = process.env.RAPID_API_ARTICLE_KEY || '';
+const envRapidApiKey = process.env.RAPID_API_ARTICLE_KEY;
 
 const testArticles = [
   {
@@ -49,7 +49,6 @@ const Demo = () => {
   const [getSummary, { error, isFetching }] = useLazyGetSummaryQuery()
 
   useEffect(() => {
-    console.log(rapidApiKey)
     const articles = localStorage.getItem('articles')
     if (articles) {
       const articlesFromLocalStorage = JSON.parse(articles)
@@ -60,7 +59,7 @@ const Demo = () => {
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
-    const { data } = await getSummary({ articleUrl: article.url, rapidApiKey: 'env' })
+    const { data } = await getSummary({ articleUrl: article.url, rapidApiKey })
 
     if (data?.summary) {
       const newArticle = { ...article, summary: data?.summary || '' }
@@ -86,10 +85,18 @@ const Demo = () => {
           className="url_input"
           type="url"
           placeholder="Rapid Api Key"
-          value={rapidApiKey}
+          value={rapidApiKey || ''}
           onChange={(e) => setRapidApiKey(e.target.value)}
           required
         />
+        <a
+          className="m-1"
+          target="_blank"
+          href="https://rapidapi.com/restyler/api/article-extractor-and-summarizer"
+          rel="noopener noreferrer"
+        >
+          <p>Get API key from rapidapi</p>
+        </a>
         <form className="relative flex justify-center items-center"
           onSubmit={handleSubmit}>
           <Image
