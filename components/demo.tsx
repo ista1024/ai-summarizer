@@ -8,44 +8,16 @@ type Article = {
   summary: string
 }
 
-const envRapidApiKey = process.env.RAPID_API_ARTICLE_KEY;
-
-const testArticles = [
-  {
-    url: '1',
-    summary: `11
-    Alongside building this application, you'll also learn how to:
-- setup a ReactJS project using Vite
-- create a responsive, beautiful UI/UX with a nice touch of glass morphism using Tailwind CSS
-- make advanced RTK query API requests that fire on condition`
-  },
-  {
-    url: '2',
-    summary: `22
-    Alongside building this application, you'll also learn how to:
-- setup a ReactJS project using Vite
-- create a responsive, beautiful UI/UX with a nice touch of glass morphism using Tailwind CSS
-- make advanced RTK query API requests that fire on condition`
-  },
-  {
-    url: '3',
-    summary: `33
-    Alongside building this application, you'll also learn how to:
-- setup a ReactJS project using Vite
-- create a responsive, beautiful UI/UX with a nice touch of glass morphism using Tailwind CSS
-- make advanced RTK query API requests that fire on condition`
-  },
-]
+const envRapidApiKey = process.env.NEXT_PUBLIC_RAPID_API_ARTICLE_KEY;
 
 const Demo = () => {
   const [article, setArticle] = useState<Article>({
     url: '',
     summary: ''
   })
-  const [allArticles, setAllArticles] = useState<Article[]>(testArticles)
+  const [allArticles, setAllArticles] = useState<Article[]>([])
   const [copied, setCopied] = useState('')
   const [rapidApiKey, setRapidApiKey] = useState(envRapidApiKey)
-
   const [getSummary, { error, isFetching }] = useLazyGetSummaryQuery()
 
   useEffect(() => {
@@ -55,7 +27,6 @@ const Demo = () => {
       setAllArticles(articlesFromLocalStorage)
     }
   }, [])
-
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault()
@@ -81,22 +52,26 @@ const Demo = () => {
   return (
     <section className="mt-16 w-full max-w-xl">
       <div className="flex flex-col w-full gap-2">
-        <input
-          className="url_input"
-          type="url"
-          placeholder="Rapid Api Key"
-          value={rapidApiKey || ''}
-          onChange={(e) => setRapidApiKey(e.target.value)}
-          required
-        />
-        <a
-          className="m-1"
-          target="_blank"
-          href="https://rapidapi.com/restyler/api/article-extractor-and-summarizer"
-          rel="noopener noreferrer"
-        >
-          <p>Get API key from rapidapi</p>
-        </a>
+        <div>
+          <input
+            className="url_input"
+            type="text"
+            placeholder="Rapid Api Key"
+            value={rapidApiKey || ''}
+            onChange={(e) => {
+              setRapidApiKey(e.target.value)
+            }}
+            required
+          />
+          <a
+            className="m-1"
+            target="_blank"
+            href="https://rapidapi.com/restyler/api/article-extractor-and-summarizer"
+            rel="noopener noreferrer"
+          >
+            <p>Get API key from rapidapi</p>
+          </a>
+        </div>
         <form className="relative flex justify-center items-center"
           onSubmit={handleSubmit}>
           <Image
