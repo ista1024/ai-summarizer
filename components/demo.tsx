@@ -1,23 +1,95 @@
 "use client";
 import { useEffect, useState } from "react"
 import Image from "next/image"
-// import {} from '@/'
+import { useLazyGetSummaryQuery } from "@/services/article";
 
+type Article = {
+  url: string,
+  summary: string
+}
+
+const envRapidApiKey = process.env.RAPID_API_ARTICLE_KEY || '';
+
+const testArticles = [
+  {
+    url: '1',
+    summary: `11
+    Alongside building this application, you'll also learn how to:
+- setup a ReactJS project using Vite
+- create a responsive, beautiful UI/UX with a nice touch of glass morphism using Tailwind CSS
+- make advanced RTK query API requests that fire on condition`
+  },
+  {
+    url: '2',
+    summary: `22
+    Alongside building this application, you'll also learn how to:
+- setup a ReactJS project using Vite
+- create a responsive, beautiful UI/UX with a nice touch of glass morphism using Tailwind CSS
+- make advanced RTK query API requests that fire on condition`
+  },
+  {
+    url: '3',
+    summary: `33
+    Alongside building this application, you'll also learn how to:
+- setup a ReactJS project using Vite
+- create a responsive, beautiful UI/UX with a nice touch of glass morphism using Tailwind CSS
+- make advanced RTK query API requests that fire on condition`
+  },
+]
 
 const Demo = () => {
-  const [article, setArticle] = useState({
+  const [article, setArticle] = useState<Article>({
     url: '',
     summary: ''
   })
+  const [allArticles, setAllArticles] = useState<Article[]>(testArticles)
+  const [copied, setCopied] = useState('')
+  const [rapidApiKey, setRapidApiKey] = useState(envRapidApiKey)
 
-  const handleSubmit = () => {
-    alert('Submitted')
+  const [getSummary, { error, isFetching }] = useLazyGetSummaryQuery()
 
+  useEffect(() => {
+    console.log(rapidApiKey)
+    const articles = localStorage.getItem('articles')
+    if (articles) {
+      const articlesFromLocalStorage = JSON.parse(articles)
+      setAllArticles(articlesFromLocalStorage)
+    }
+  }, [])
+
+
+  const handleSubmit = async (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    const { data } = await getSummary({ articleUrl: article.url, rapidApiKey: 'env' })
+
+    if (data?.summary) {
+      const newArticle = { ...article, summary: data?.summary || '' }
+      const updatedAllArticle = [newArticle, ...allArticles]
+
+      setArticle(newArticle)
+      setAllArticles(updatedAllArticle)
+
+      localStorage.setItem('articles', JSON.stringify(updatedAllArticle))
+    }
+  }
+
+  const handleCopy = (copyUrl: string) => {
+    setCopied(copyUrl)
+    navigator.clipboard.writeText(copyUrl)
+    setTimeout(() => setCopied(''), 3000)
   }
 
   return (
     <section className="mt-16 w-full max-w-xl">
       <div className="flex flex-col w-full gap-2">
+        <input
+          className="url_input"
+          type="url"
+          placeholder="Rapid Api Key"
+          value={rapidApiKey}
+          onChange={(e) => setRapidApiKey(e.target.value)}
+          required
+        />
         <form className="relative flex justify-center items-center"
           onSubmit={handleSubmit}>
           <Image
@@ -46,8 +118,68 @@ const Demo = () => {
           </button>
         </form>
         {/* Browse URL History */}
+        <div className="flex flex-col gap-1 max-h-60 overflow-y-auto">
+          {allArticles.map((item, index) => (
+            <div
+              key={`link-${index}`}
+              onClick={() => setArticle(item)}
+              className="link_card"
+            >
+              <div
+                className="copy_btn"
+                onClick={() => handleCopy(item.url)}
+              >
+                <Image
+                  className="w-[40%] h-[40%] object-contain"
+                  src={copied === item.url ? "/tick.svg" : "/copy.svg"}
+                  alt="copy"
+                  width={28}
+                  height={37}
+                  priority
+                />
+              </div>
+              <p className="flex-1 font-satoshi text-blue-700 font-medium text-sm truncate">
+                {item.url}
+              </p>
+            </div>
+          ))}
+        </div>
       </div>
       {/* Display Result */}
+      <div className="my-10 max-w-full flex justify-center items-center">
+        {isFetching ? (
+          <Image
+            className="w-20 h-20 object-contain"
+            src="/loader.svg"
+            alt="loader"
+            width={28}
+            height={37}
+            priority
+          />
+        ) : error ? (
+          <p className="font-inter font-bold text-black text-center">
+            {`Well, that wasn't suppoered to happen...`}
+            <br />
+            <span className="font-satoshi font-normal text-gray-700">
+              {error?.data?.error}
+            </span>
+          </p>
+        ) : (
+          article?.summary && (
+            <div className="flex flex-col gap-3">
+              <h2 className="font-satoshi font-bold text-gray-600 text-lx">
+                {`Article `}
+                <span className="blue_gradient">Summary</span>
+              </h2>
+              <div className="summary_box">
+                <p className="font-inter font-medium text-sm text-gray-700">
+                  {article?.summary || ''}
+                </p>
+              </div>
+            </div>
+          )
+        )}
+      </div>
     </section>
   )
 }
